@@ -11,14 +11,12 @@ import (
 	"time"
 )
 
-func parseAddArgs(task *Task, sockAddr *string) {
+func parseAddArgs(task *Task) {
 	base := fmt.Sprintf("%s add", os.Args[0])
 	addFlags := flag.NewFlagSet(base, flag.ExitOnError)
 	addFlags.StringVar(&task.Name, "n", "", "the name of this task")
 	dep := addFlags.String("d", "", "one or more comma separated tasks on which this task depends")
 	addFlags.StringVar(&task.Checker, "c", "", "an optional check to be run whose return value is used instead")
-	//addFlags.StringVar(sockAddr, "s", SockAddr, "path to the socket used for coordination")
-	*sockAddr = SockAddr
 	addFlags.Parse(os.Args[2:])
 
 	if *dep != "" {
@@ -55,14 +53,13 @@ func addTaskEnd(client *rpc.Client, id int, exitCode int) {
 }
 
 func addTask() {
-	var sockAddr string
 	task := Task{}
 
-	parseAddArgs(&task, &sockAddr)
+	parseAddArgs(&task)
 
 	task.Print()
 
-	client, err := rpc.DialHTTP("unix", sockAddr)
+	client, err := rpc.DialHTTP("unix", GlobalTaskerConfig.RPC.Socket)
 	if err != nil {
 		log.Fatal("dialing:", err)
 	}

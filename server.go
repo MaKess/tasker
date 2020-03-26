@@ -73,14 +73,14 @@ func (t Tasker) ListTask(name *string, reply *[]TaskInfo) error {
 }
 
 func startServer() {
-	if err := os.RemoveAll(SockAddr); err != nil {
+	if err := os.RemoveAll(GlobalTaskerConfig.RPC.Socket); err != nil {
 		log.Fatal(err)
 	}
 
 	t := Tasker{}
 	rpc.Register(t)
 	rpc.HandleHTTP()
-	l, e := net.Listen("unix", SockAddr)
+	l, e := net.Listen("unix", GlobalTaskerConfig.RPC.Socket)
 	if e != nil {
 		log.Fatal("listen error:", e)
 	}

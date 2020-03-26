@@ -1,13 +1,50 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
+	"os/user"
+	"path/filepath"
+	"strings"
 )
 
-const SockAddr = "/tmp/tasker.sock"
+type TaskerRPCConfig struct {
+	Socket string `json:"socket"`
+}
+
+type TaskerConfig struct {
+	RPC TaskerRPCConfig `json:"rpc"`
+}
+
+// default values for the configuration
+var GlobalTaskerConfig = TaskerConfig {
+	RPC: TaskerRPCConfig {
+		Socket: "/tmp/tasker-%s.sock",
+	},
+}
+
+func readConfig() {
+	usr, _ := user.Current()
+	homeDir := usr.HomeDir
+
+	for _, fileName := range [...]string{"/etc/tasker.json", "config.json", "~/.tasker.json"} {
+		if strings.HasPrefix(fileName, "~/") {
+			fileName = filepath.Join(homeDir, fileName[2:])
+		}
+
+		configFile, err := os.Open(fileName)
+		if err == nil {
+			json.NewDecoder(configFile).Decode(&GlobalTaskerConfig)
+			configFile.Close()
+		}
+	}
+
+	// fix up dynamic configuration items
+	GlobalTaskerConfig.RPC.Socket = fmt.Sprintf(GlobalTaskerConfig.RPC.Socket, usr.Username)
+}
 
 type Task struct {
 	Name string
@@ -92,6 +129,8 @@ func main() {
 	if len(os.Args) < 2 {
 		usage()
 	}
+
+	readConfig()
 
 	switch os.Args[1] {
 	case "add":

@@ -13,25 +13,15 @@ func usageCheck() {
 	os.Exit(1)
 }
 
-func parseCheckArgs(name *string, sockAddr *string) {
-
-	// TODO: add a real argument parsing here as well
-
+func checkTask() {
 	if len(os.Args) != 3 {
 		usageCheck()
+		return
 	}
 
-	*name = os.Args[2]
-	*sockAddr = SockAddr
-}
+	name := os.Args[2]
 
-func checkTask() {
-	var name string
-	var sockAddr string
-
-	parseCheckArgs(&name, &sockAddr)
-
-	client, err := rpc.DialHTTP("unix", sockAddr)
+	client, err := rpc.DialHTTP("unix", GlobalTaskerConfig.RPC.Socket)
 	if err != nil {
 		log.Fatal("dialing:", err)
 	}

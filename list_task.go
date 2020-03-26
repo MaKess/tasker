@@ -13,23 +13,13 @@ func usageList() {
 	os.Exit(1)
 }
 
-func parseListArgs(sockAddr *string) {
-
-	// TODO: add a real argument parsing here as well
-
+func listTask() {
 	if len(os.Args) != 2 {
 		usageList()
+		return
 	}
 
-	*sockAddr = SockAddr
-}
-
-func listTask() {
-	var sockAddr string
-
-	parseListArgs(&sockAddr)
-
-	client, err := rpc.DialHTTP("unix", sockAddr)
+	client, err := rpc.DialHTTP("unix", GlobalTaskerConfig.RPC.Socket)
 	if err != nil {
 		log.Fatal("dialing:", err)
 	}
